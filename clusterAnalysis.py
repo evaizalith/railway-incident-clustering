@@ -80,8 +80,9 @@ def dbscanClustering(data):
     dbscan = DBSCAN(eps=0.1, min_samples=10, n_jobs=-1, algorithm='ball_tree', leaf_size=15)
     labels = dbscan.fit_predict(data)
     n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+    n_noise = list(dbscan.labels_).count(-1)
 
-    print(f"DBSCAN produced {n_clusters} clusters")
+    print(f"DBSCAN produced {n_clusters} clusters and estimated {n_noise} noise points")
 
     plt.scatter(data[:, 0], data[:, 1], c=labels, cmap='viridis')
     plt.title("DBSCAN Cluster Results")
@@ -93,8 +94,8 @@ def dbscanClustering(data):
     colors = [plt.cm.Spectral(each) for each in np.linspace(0, 1, len(unique_labels))]
     for k, col in zip(unique_labels, colors):
         if k == -1:
-            # Black used for noise.
-            col = [0, 0, 0, 1]
+            # don't plot noise
+            continue
 
         class_member_mask = labels == k
 
@@ -118,7 +119,7 @@ def dbscanClustering(data):
             markersize=6,
         )
 
-    plt.title(f"Estimated number of clusters: {n_clusters}")
+    plt.title(f"Estimated number of clusters: {n_clusters}, estimated noise: {n_noise}")
 
     plt.savefig("dbscanResults.png")
     plt.show()
