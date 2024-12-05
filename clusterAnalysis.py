@@ -77,7 +77,7 @@ def reduceDimensionality(data, n_components=2):
     return reduced_data
 
 def dbscanClustering(data):
-    dbscan = DBSCAN(eps=0.5, min_samples=5)
+    dbscan = DBSCAN(eps=0.1, min_samples=10, n_jobs=-1, algorithm='ball_tree', leaf_size=15)
     labels = dbscan.fit_predict(data)
     print(f"DBSCAN produced {len(set(labels)) - (1 if -1 in labels else 0)} clusters")
 
