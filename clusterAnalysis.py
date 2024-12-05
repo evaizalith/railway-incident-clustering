@@ -74,6 +74,7 @@ def dbscanClustering(data):
     dbscan = DBSCAN(eps=0.5, min_samples=5)
     labels = dbscan.fit_predict(data)
     print(f"DBSCAN produced {len(set(labels)) - (1 if -1 in labels else 0)} clusters")
+
     return labels
 
 def findClusterSilhouettes(df, verbose):
@@ -118,7 +119,7 @@ def printHelp():
     print("\tpython clusterAnalysis.py -d <path>\n")
 
 def main():
-    datapath = "data.csv"
+    datapath = "data/data.csv"
 
     verbose = False
     n_clusters = 4
@@ -156,10 +157,10 @@ def main():
     print(CONSOLE_COLOR_MAG, f"\nData loaded with shape {df.shape}", CONSOLE_COLOR_RESET)
 
     processedData = preprocessData(df, verbose)
-    # reducedData = reduceDimensionality(processedData)
-
     findClusterSilhouettes(processedData, verbose)
-    # dbscanLabels = dbscanClustering(reducedData)
+
+    reducedData = reduceDimensionality(processedData)
+    dbscanLabels = dbscanClustering(reducedData)
 
 if __name__ == "__main__":
     main()
