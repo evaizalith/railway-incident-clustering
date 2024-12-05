@@ -26,10 +26,13 @@ COLS_OF_INTEREST = [
     #30, # Station name
     #33, # State Abbreviation
     21, # Accident Type
+    32, # State Code
+    39, # Visibility Code
     41, # Weather Condition Code
+    50, # Equipment Type Code
     54, # Train Speed
-    #57, # Gross Tonnage
-    59, # Signalization
+    57, # Gross Tonnage
+    #59, # Signalization
 ]
 
 total_to_process = 0
@@ -45,22 +48,25 @@ def updateStatus():
 
 def preprocessData(df, verbose):
     if (verbose == True):
-       print(df.info())
-       print(df.describe())
+        print(CONSOLE_COLOR_MAG, "\nData before pre-processing:", CONSOLE_COLOR_RESET)
+        print(df.info())
+        print(df.describe())
 
-       for col in df.columns:
+        for col in df.columns:
            unique = len(df[col].unique())
            print(f"{col} has {unique} values")
-
-    df = df.fillna(0)
-    encoded_data = pd.get_dummies(df)
-
-    print("\nDataframe data one-hot encoded\n")
     
+    df['Equipment Type Code'] = df['Equipment Type Code'].str.replace(r'\D+', '')
+    df['Gross Tonnage'] = df['Gross Tonnage'].str.replace(r'\D+', '')
+    df['Equipment Type Code'] = pd.to_numeric(df['Equipment Type Code'], errors="coerce")
+    df['Gross Tonnage'] = pd.to_numeric(df['Gross Tonnage'], errors="coerce")
+    
+    encoded_data = df.fillna(0)
+
     if (verbose == True):
-        print("Memory usage:")
-        memory = encoded_data.memory_usage()
-        print(memory)
+        print(CONSOLE_COLOR_MAG, "\nData after pre-processing:", CONSOLE_COLOR_RESET)
+        print(encoded_data.info())
+        print(encoded_data.describe())
 
     return encoded_data
 
@@ -111,6 +117,7 @@ def printHelp():
     print("\t -h \t Display this information")
     print("\t -n \t Specify number of clusters to use for cluster analysis")
     print("\t -v \t Display verbose info")
+    print("\t -s \t Perform silhouette analysis to find optimal number of clusters")
 
     print("\nDefault usage:\n")
     print("\tpython clusterAnalysis.py")
@@ -123,6 +130,7 @@ def main():
 
     verbose = False
     n_clusters = 4
+    silhouette = False
 
     if len(sys.argv) > 1:
         if "-h" in sys.argv:
@@ -139,6 +147,9 @@ def main():
 
         if "-v" in sys.argv:
             verbose = True
+
+        if "-s" in sys.argv:
+            silhouette = True
 
     if not path.exists(datapath):
         print(CONSOLE_COLOR_RED, f"Error: Unable to find data file '{datapath}'\n", CONSOLE_COLOR_RESET)
@@ -157,7 +168,9 @@ def main():
     print(CONSOLE_COLOR_MAG, f"\nData loaded with shape {df.shape}", CONSOLE_COLOR_RESET)
 
     processedData = preprocessData(df, verbose)
-    findClusterSilhouettes(processedData, verbose)
+
+    if (silhouette == True):
+        findClusterSilhouettes(processedData, verbose)
 
     reducedData = reduceDimensionality(processedData)
     dbscanLabels = dbscanClustering(reducedData)
