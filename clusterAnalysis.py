@@ -7,7 +7,10 @@ from os import path
 import matplotlib.pyplot as plt
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.cluster import KMeans
+from sklearn.cluster import DBSCAN
 from sklearn.metrics import silhouette_score
+from sklearn.decomposition import PCA
+
 
 CONSOLE_COLOR_RED = "\033[91m"
 CONSOLE_COLOR_MAG = "\033[95m"
@@ -61,6 +64,18 @@ def preprocessData(df, verbose):
 
     return encoded_data
 
+def reduceDimensionality(data, n_components=2):
+    pca = PCA(n_components=n_components)
+    reduced_data = pca.fit_transform(data)
+    print(f"Reduced data to {n_components} dimensions")
+    return reduced_data
+
+def dbscanClustering(data):
+    dbscan = DBSCAN(eps=0.5, min_samples=5)
+    labels = dbscan.fit_predict(data)
+    print(f"DBSCAN produced {len(set(labels)) - (1 if -1 in labels else 0)} clusters")
+    return labels
+
 def findClusterSilhouettes(df, verbose):
     global done_processing
     global total_to_process
@@ -103,7 +118,7 @@ def printHelp():
     print("\tpython clusterAnalysis.py -d <path>\n")
 
 def main():
-    datapath = "data/data.csv"
+    datapath = "data.csv"
 
     verbose = False
     n_clusters = 4
@@ -141,7 +156,10 @@ def main():
     print(CONSOLE_COLOR_MAG, f"\nData loaded with shape {df.shape}", CONSOLE_COLOR_RESET)
 
     processedData = preprocessData(df, verbose)
+    # reducedData = reduceDimensionality(processedData)
+
     findClusterSilhouettes(processedData, verbose)
+    # dbscanLabels = dbscanClustering(reducedData)
 
 if __name__ == "__main__":
     main()
